@@ -1,0 +1,16 @@
+[
+  {
+    "id": "cow",
+    "name": "cow",
+    "image": "assets/animals/cow.avif",
+    "soundWord": "moo",
+    "acceptedAnswers": ["moo", "mooo", "muuu", "moooo", "mu"]
+  },
+  {
+    "id": "dog",
+    "name": "dog",
+    "image": "assets/animals/dog.png",
+    "soundWord": "woof woof",
+    "acceptedAnswers": ["woof", "woof woof", "bark", "bow wow", "ruff"]
+  }
+]
