@@ -8,8 +8,8 @@
 function normalize(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^a-z\s]/g, ' ') // drop punctuation/digits
-    .replace(/(.)\1+/g, '$1') // collapse repeated letters: muuu -> mu
+    .replace(/[^\p{L}\s]/gu, ' ') // drop punctuation/digits, keep any Unicode letter
+    .replace(/(.)\1+/gu, '$1') // collapse repeated letters: muuu -> mu, мууу -> му
     .replace(/\s+/g, ' ')
     .trim();
 }

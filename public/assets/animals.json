@@ -1,16 +1,52 @@
 [
   {
     "id": "cow",
-    "name": "cow",
     "image": "assets/animals/cow.avif",
-    "soundWord": "moo",
-    "acceptedAnswers": ["moo", "mooo", "muuu", "moooo", "mu"]
+    "translations": {
+      "en": {
+        "name": "cow",
+        "soundWord": "moo",
+        "acceptedAnswers": ["moo", "mooo", "muuu", "moooo", "mu"]
+      },
+      "uk": {
+        "name": "корова",
+        "soundWord": "муу",
+        "acceptedAnswers": ["му", "муу", "мо", "муу"],
+        "learnPhrase": "Корова каже... муу!",
+        "quizPrompt": "Що каже корова?"
+      },
+      "es": {
+        "name": "vaca",
+        "soundWord": "mu",
+        "acceptedAnswers": ["mu", "muu", "moo"],
+        "learnPhrase": "La vaca hace... ¡mu!",
+        "quizPrompt": "¿Qué hace la vaca?"
+      }
+    }
   },
   {
     "id": "dog",
-    "name": "dog",
     "image": "assets/animals/dog.png",
-    "soundWord": "woof woof",
-    "acceptedAnswers": ["woof", "woof woof", "bark", "bow wow", "ruff"]
+    "translations": {
+      "en": {
+        "name": "dog",
+        "soundWord": "woof woof",
+        "acceptedAnswers": ["woof", "woof woof", "bark", "bow wow", "ruff"]
+      },
+      "uk": {
+        "name": "собака",
+        "soundWord": "гав гав",
+        "acceptedAnswers": ["гав", "гав гав", "ав"],
+        "learnPhrase": "Собака каже... гав гав!",
+        "quizPrompt": "Що каже собака?"
+      },
+      "es": {
+        "name": "perro",
+        "soundWord": "guau guau",
+        "acceptedAnswers": ["guau", "guau guau", "au"],
+        "learnPhrase": "El perro hace... ¡guau guau!",
+        "quizPrompt": "¿Qué hace el perro?"
+      }
+    }
   }
 ]

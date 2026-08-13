@@ -24,8 +24,12 @@ self.addEventListener('fetch', (event) => {
       (cached) =>
         cached ||
         fetch(request).then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
+          // Persist only successful responses: a cached 404/error page would otherwise be
+          // served forever by cache-first (e.g. in place of a recognizer model tarball).
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
+          }
           return response;
         }),
     ),

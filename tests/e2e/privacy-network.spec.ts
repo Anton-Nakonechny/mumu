@@ -6,8 +6,12 @@
  * To run: install Playwright (see smoke.spec.ts), start the app, then `npx playwright test`.
  */
 import { test, expect } from '@playwright/test';
+import { UI_STRINGS } from '../../src/domain/language';
 
 const AUDIO_HINTS = [/speech/i, /recognize/i, /transcri/i, /audio/i, /\.wav|\.ogg|\.webm/i];
+
+// The quiz button label depends on the selected language (default may be non-English).
+const QUIZ_LABELS = new RegExp(Object.values(UI_STRINGS).map((s) => s.quiz).join('|'));
 
 test('no audio/transcript leaves the device during Quiz mode', async ({ page }) => {
   const suspicious: string[] = [];
@@ -20,7 +24,7 @@ test('no audio/transcript leaves the device during Quiz mode', async ({ page }) 
   });
 
   await page.goto('/');
-  await page.getByRole('button', { name: /Quiz/ }).click();
+  await page.getByRole('button', { name: QUIZ_LABELS }).click();
   // Give the recognizer time to run (grant mic via test fixtures in a real run).
   await page.waitForTimeout(3000);
 

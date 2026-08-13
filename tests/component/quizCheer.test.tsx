@@ -5,6 +5,7 @@ import { CHEERS } from '../../src/domain/cheers';
 import type { Animal } from '../../src/domain/animal';
 import type { TtsService } from '../../src/services/speechSynthesis';
 import type { RecognitionService, RecognitionResult } from '../../src/services/speechRecognition';
+import { LANGUAGES, UI_STRINGS } from '../../src/domain/language';
 
 const cow: Animal = {
   id: 'cow',
@@ -13,6 +14,9 @@ const cow: Animal = {
   soundWord: 'muuuu',
   acceptedAnswers: ['moo', 'muuu'],
 };
+
+const enStrings = UI_STRINGS['en'];
+const enConfig = LANGUAGES.find((l) => l.code === 'en')!;
 
 function makeTts(available = true): TtsService {
   return { isAvailable: () => available, speak: vi.fn().mockResolvedValue(undefined), cancel: vi.fn() };
@@ -34,7 +38,8 @@ function makeRecognition(
 /** True if any tts.speak call used a phrase from the celebratory CHEERS set (FR-002 criterion). */
 function spokeACheer(tts: TtsService): boolean {
   const calls = (tts.speak as unknown as { mock: { calls: unknown[][] } }).mock.calls;
-  return calls.some(([arg]) => typeof arg === 'string' && CHEERS.includes(arg));
+  const allCheers = new Set(Object.values(CHEERS).flatMap((set) => [...(set as readonly string[])]))
+  return calls.some(([arg]) => typeof arg === 'string' && allCheers.has(arg));
 }
 
 describe('QuizMode cheer on correct answer (US1)', () => {
@@ -42,7 +47,7 @@ describe('QuizMode cheer on correct answer (US1)', () => {
     const tts = makeTts();
     const recognition = makeRecognition({ transcript: 'moooo', noSpeech: false });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={vi.fn()} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
     );
     await waitFor(() => expect(spokeACheer(tts)).toBe(true));
   });
@@ -51,7 +56,7 @@ describe('QuizMode cheer on correct answer (US1)', () => {
     const tts = makeTts();
     const recognition = makeRecognition({ transcript: 'banana', noSpeech: false });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={vi.fn()} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
     );
     await waitFor(() => expect(screen.getByTestId('feedback')).toHaveTextContent(/try/i));
     expect(spokeACheer(tts)).toBe(false);
@@ -61,13 +66,13 @@ describe('QuizMode cheer on correct answer (US1)', () => {
     const tts = makeTts();
     const recognition = makeRecognition({ transcript: 'banana', noSpeech: false });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={vi.fn()} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
     );
     // First miss auto-fires on mount; second via the Listen button → reveal.
     await waitFor(() => expect(screen.getByTestId('feedback')).toHaveTextContent(/try/i));
     fireEvent.click(screen.getByTestId('listen-button'));
     await waitFor(() => expect(screen.getByTestId('feedback')).toHaveTextContent(/muuuu/));
-    expect(tts.speak).toHaveBeenCalledWith('muuuu');
+    expect(tts.speak).toHaveBeenCalledWith('muuuu', enConfig.ttsLang);
     expect(spokeACheer(tts)).toBe(false);
   });
 
@@ -75,7 +80,7 @@ describe('QuizMode cheer on correct answer (US1)', () => {
     const tts = makeTts(false);
     const recognition = makeRecognition({ transcript: 'moooo', noSpeech: false });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={vi.fn()} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
     );
     await waitFor(() => expect(screen.getByTestId('feedback')).toHaveTextContent(/right|yay/i));
   });

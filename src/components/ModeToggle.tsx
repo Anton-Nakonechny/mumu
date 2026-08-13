@@ -1,12 +1,15 @@
+import type { UI_STRINGS } from '../domain/language';
+
 export type GameMode = 'learn' | 'quiz';
 
 interface ModeToggleProps {
   mode: GameMode;
   onChange: (mode: GameMode) => void;
+  strings: typeof UI_STRINGS['en'];
 }
 
 /** Large labeled control to switch Learn ↔ Quiz at any time without restarting (FR-010). */
-export function ModeToggle({ mode, onChange }: ModeToggleProps) {
+export function ModeToggle({ mode, onChange, strings }: ModeToggleProps) {
   return (
     <div className="mode-toggle" role="group" aria-label="Game mode">
       <button
@@ -15,7 +18,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
         aria-pressed={mode === 'learn'}
         onClick={() => onChange('learn')}
       >
-        📖 Learn
+        📖 {strings.learn}
       </button>
       <button
         type="button"
@@ -23,7 +26,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
         aria-pressed={mode === 'quiz'}
         onClick={() => onChange('quiz')}
       >
-        🎤 Quiz
+        🎤 {strings.quiz}
       </button>
     </div>
   );

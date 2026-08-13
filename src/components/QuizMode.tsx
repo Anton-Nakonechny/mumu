@@ -5,6 +5,7 @@ import { isAnswerCorrect } from '../domain/answerMatcher';
 import { nextCheer, AUTO_ADVANCE_DELAY_MS } from '../domain/cheers';
 import type { TtsService } from '../services/speechSynthesis';
 import type { RecognitionService } from '../services/speechRecognition';
+import type { Language, LanguageConfig, UI_STRINGS } from '../domain/language';
 import { AnimalCard } from './AnimalCard';
 import { Feedback } from './Feedback';
 
@@ -12,6 +13,9 @@ interface QuizModeProps {
   animal: Animal;
   tts: TtsService;
   recognition: RecognitionService;
+  lang: Language;
+  strings: typeof UI_STRINGS['en'];
+  langConfig: LanguageConfig;
   onNext: () => void;
   onPrev: () => void;
 }
@@ -21,7 +25,7 @@ interface QuizModeProps {
  * the answer leniently, and after two misses reveals + speaks the sound (FR-006..FR-008a).
  * If listening is unavailable/denied the child is never blocked (FR-011, SC-006).
  */
-export function QuizMode({ animal, tts, recognition, onNext, onPrev }: QuizModeProps) {
+export function QuizMode({ animal, tts, recognition, lang, strings, langConfig, onNext, onPrev }: QuizModeProps) {
   const prompt = quizPromptFor(animal);
   const sessionRef = useRef(new QuizSession());
   const lastCheerRef = useRef<string | undefined>(undefined);
@@ -33,7 +37,9 @@ export function QuizMode({ animal, tts, recognition, onNext, onPrev }: QuizModeP
   const advanceGenRef = useRef(0);
   const [phase, setPhase] = useState<QuizPhase>('listening');
   const [isListening, setIsListening] = useState(false);
-  const [unavailable, setUnavailable] = useState(false);
+  // Starts true: until the recognizer is ready (model may still be downloading), the child
+  // sees the localized unavailable notice with reveal/skip — never a misleading "listening".
+  const [unavailable, setUnavailable] = useState(true);
 
   // Disarm any pending auto-advance so it never fires after the child leaves this animal.
   const clearAutoAdvance = () => {
@@ -80,9 +86,9 @@ export function QuizMode({ animal, tts, recognition, onNext, onPrev }: QuizModeP
     setPhase(next);
     if (next === 'correct') {
       // Cheer out loud for a correct answer (FR-001/FR-002); a rotating phrase avoids repeats.
-      const cheer = nextCheer(lastCheerRef.current);
+      const cheer = nextCheer(lang, lastCheerRef.current);
       lastCheerRef.current = cheer;
-      await tts.speak(cheer);
+      await tts.speak(cheer, langConfig.ttsLang);
       // If the child navigated away during the cheer, the awaited tts.cancel() resolved this
       // continuation — don't schedule an advance that would bounce them off the new animal.
       if (advanceGenRef.current !== gen) return;
@@ -93,7 +99,7 @@ export function QuizMode({ animal, tts, recognition, onNext, onPrev }: QuizModeP
         onNext();
       }, AUTO_ADVANCE_DELAY_MS);
     } else if (next === 'revealed') {
-      void tts.speak(animal.soundWord);
+      void tts.speak(animal.soundWord, langConfig.ttsLang);
     }
   };
 
@@ -103,7 +109,7 @@ export function QuizMode({ animal, tts, recognition, onNext, onPrev }: QuizModeP
     setPhase('listening');
     let cancelled = false;
     void (async () => {
-      await tts.speak(prompt);
+      await tts.speak(prompt, langConfig.ttsLang);
       if (!cancelled && recognition.isAvailable()) void listen();
     })();
     return () => {
@@ -129,12 +135,12 @@ export function QuizMode({ animal, tts, recognition, onNext, onPrev }: QuizModeP
       animal={animal}
       onNext={() => navigate(onNext)}
       onPrev={() => navigate(onPrev)}
-      onReplay={() => void tts.speak(prompt)}
+      onReplay={() => void tts.speak(prompt, langConfig.ttsLang)}
     >
       <p className="phrase-text" data-testid="quiz-prompt">
         {prompt}
       </p>
-      <Feedback phase={phase} soundWord={animal.soundWord} listeningUnavailable={unavailable} />
+      <Feedback phase={phase} soundWord={animal.soundWord} listeningUnavailable={unavailable} strings={strings} />
       {canListenAgain && (
         <button
           type="button"
@@ -142,7 +148,7 @@ export function QuizMode({ animal, tts, recognition, onNext, onPrev }: QuizModeP
           onClick={() => void listen()}
           data-testid="listen-button"
         >
-          👂 Listen
+          👂 {strings.listen}
         </button>
       )}
     </AnimalCard>

@@ -5,6 +5,7 @@ import { CHEERS, AUTO_ADVANCE_DELAY_MS } from '../../src/domain/cheers';
 import type { Animal } from '../../src/domain/animal';
 import type { TtsService } from '../../src/services/speechSynthesis';
 import type { RecognitionService, RecognitionResult } from '../../src/services/speechRecognition';
+import { LANGUAGES, UI_STRINGS } from '../../src/domain/language';
 
 const cow: Animal = {
   id: 'cow',
@@ -13,6 +14,9 @@ const cow: Animal = {
   soundWord: 'muuuu',
   acceptedAnswers: ['moo', 'muuu'],
 };
+
+const enStrings = UI_STRINGS['en'];
+const enConfig = LANGUAGES.find((l) => l.code === 'en')!;
 
 function makeTts(available = true): TtsService {
   return { isAvailable: () => available, speak: vi.fn().mockResolvedValue(undefined), cancel: vi.fn() };
@@ -30,6 +34,10 @@ function makeRecognition(result: RecognitionResult): RecognitionService {
 const CORRECT: RecognitionResult = { transcript: 'moooo', noSpeech: false };
 const MISS: RecognitionResult = { transcript: 'banana', noSpeech: false };
 
+function isCheer(text: string): boolean {
+  return Object.values(CHEERS).some((set) => (set as readonly string[]).includes(text));
+}
+
 /** Flush the mount → ask → listen → cheer microtask chain (no timers involved yet). */
 async function settle(): Promise<void> {
   await act(async () => {
@@ -41,7 +49,16 @@ function renderQuiz(opts: { tts?: TtsService; recognition: RecognitionService; o
   const tts = opts.tts ?? makeTts();
   const onNext = opts.onNext ?? vi.fn();
   const utils = render(
-    <QuizMode animal={cow} tts={tts} recognition={opts.recognition} onNext={onNext} onPrev={vi.fn()} />,
+    <QuizMode
+      animal={cow}
+      tts={tts}
+      recognition={opts.recognition}
+      lang="en"
+      strings={enStrings}
+      langConfig={enConfig}
+      onNext={onNext}
+      onPrev={vi.fn()}
+    />,
   );
   return { tts, onNext, ...utils };
 }
@@ -67,7 +84,7 @@ describe('QuizMode auto-advance after a correct answer (US2)', () => {
     });
     const tts = makeTts();
     (tts.speak as unknown as { mockImplementation: (fn: (t: string) => Promise<void>) => void }).mockImplementation(
-      (text: string) => (CHEERS.includes(text) ? cheerPromise : Promise.resolve()),
+      (text: string) => (isCheer(text) ? cheerPromise : Promise.resolve()),
     );
     const { onNext } = renderQuiz({ tts, recognition: makeRecognition(CORRECT) });
     await settle();

@@ -8,6 +8,8 @@
  * degrades gracefully (reveal/skip) and never blocks the child (FR-011, SC-006).
  */
 
+import type { Language } from '../domain/language';
+
 export type PermissionResult = 'granted' | 'denied' | 'unsupported';
 
 export interface RecognitionResult {
@@ -38,7 +40,15 @@ interface VoskModel {
   terminate?(): void;
 }
 
-const MODEL_URL = 'assets/models/vosk-model-small-en-us-0.15.tar.gz';
+/** Per-language bundled on-device Vosk model paths (FR-007, FR-013). */
+export const MODEL_URLS: Record<Language, string> = {
+  en: '/assets/models/vosk-model-small-en-us-0.15.tar.gz',
+  uk: '/assets/models/vosk-model-small-uk-v3-nano.tar.gz',
+  es: '/assets/models/vosk-model-small-es-0.42.tar.gz',
+};
+
+/** Module-level cache: parsed VoskModel instances, keyed by model URL (FR-013). */
+const modelCache = new Map<string, VoskModel>();
 
 export class OnDeviceRecognitionService implements RecognitionService {
   private model: VoskModel | null = null;
@@ -46,6 +56,8 @@ export class OnDeviceRecognitionService implements RecognitionService {
   private audioContext: AudioContext | null = null;
   private permission: PermissionResult = 'unsupported';
   private stopped = false;
+
+  constructor(private readonly modelUrl: string) {}
 
   isAvailable(): boolean {
     return this.permission === 'granted' && this.model !== null;
@@ -67,16 +79,23 @@ export class OnDeviceRecognitionService implements RecognitionService {
     }
   }
 
-  /** Load the on-device model once. Fails soft: no model → recognition simply unavailable. */
+  /** Load the on-device model once, using the session cache. Fails soft: no model → recognition simply unavailable. */
   private async ensureModel(): Promise<void> {
     if (this.model) return;
+    const cached = modelCache.get(this.modelUrl);
+    if (cached) {
+      this.model = cached;
+      return;
+    }
     try {
       // Dynamic + optional: app builds/runs even when vosk-browser or the model is absent.
       const vosk = await import(/* @vite-ignore */ 'vosk-browser').catch(() => null);
       if (!vosk || typeof (vosk as { createModel?: unknown }).createModel !== 'function') return;
-      this.model = (await (
+      const loaded = (await (
         vosk as { createModel: (url: string) => Promise<VoskModel> }
-      ).createModel(MODEL_URL)) as VoskModel;
+      ).createModel(this.modelUrl)) as VoskModel;
+      modelCache.set(this.modelUrl, loaded);
+      this.model = loaded;
     } catch {
       this.model = null;
     }
@@ -123,4 +142,12 @@ export class OnDeviceRecognitionService implements RecognitionService {
     void this.audioContext?.close();
     this.audioContext = null;
   }
+}
+
+/**
+ * Factory that returns an on-device Vosk recognition service for the given language.
+ * Every language uses its own bundled model — no cloud speech, no cross-language fallback (FR-007, FR-011).
+ */
+export function makeRecognitionService(lang: Language): RecognitionService {
+  return new OnDeviceRecognitionService(MODEL_URLS[lang]);
 }

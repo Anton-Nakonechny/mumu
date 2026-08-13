@@ -1,11 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { CHEERS, AUTO_ADVANCE_DELAY_MS, nextCheer } from '../../src/domain/cheers';
+import type { Language } from '../../src/domain/language';
+
+const LANGS: Language[] = ['uk', 'es', 'en'];
 
 describe('cheers (Quiz Cheer & Auto-Advance)', () => {
-  it('exposes a non-empty set of short celebratory phrases', () => {
-    expect(CHEERS.length).toBeGreaterThan(0);
-    for (const phrase of CHEERS) {
-      expect(phrase.trim().length).toBeGreaterThan(0);
+  it('exposes a non-empty set of short celebratory phrases for each language', () => {
+    for (const lang of LANGS) {
+      expect(CHEERS[lang].length).toBeGreaterThan(0);
+      for (const phrase of CHEERS[lang]) {
+        expect(phrase.trim().length).toBeGreaterThan(0);
+      }
     }
   });
 
@@ -14,28 +19,30 @@ describe('cheers (Quiz Cheer & Auto-Advance)', () => {
     expect(AUTO_ADVANCE_DELAY_MS).toBeLessThanOrEqual(2500);
   });
 
-  it('always returns a member of CHEERS', () => {
-    for (let i = 0; i < 100; i++) {
-      expect(CHEERS).toContain(nextCheer());
+  it('always returns a member of CHEERS[lang]', () => {
+    for (const lang of LANGS) {
+      for (let i = 0; i < 100; i++) {
+        expect(CHEERS[lang]).toContain(nextCheer(lang));
+      }
     }
   });
 
   it('never immediately repeats the previous cheer when more than one phrase exists', () => {
-    // Guard: the no-repeat guarantee is only meaningful with >1 phrase.
-    expect(CHEERS.length).toBeGreaterThan(1);
-    let previous = nextCheer();
-    for (let i = 0; i < 200; i++) {
-      const next = nextCheer(previous);
-      expect(next).not.toBe(previous);
-      expect(CHEERS).toContain(next);
-      previous = next;
+    for (const lang of LANGS) {
+      expect(CHEERS[lang].length).toBeGreaterThan(1);
+      let previous = nextCheer(lang);
+      for (let i = 0; i < 200; i++) {
+        const next = nextCheer(lang, previous);
+        expect(next).not.toBe(previous);
+        expect(CHEERS[lang]).toContain(next);
+        previous = next;
+      }
     }
   });
 
-  it('returns the single phrase safely when CHEERS has exactly one entry', () => {
-    // nextCheer must not loop forever / throw when no alternative exists.
-    // (Documents the single-element contract; exercised via the general picker.)
-    const only = nextCheer(nextCheer());
-    expect(CHEERS).toContain(only);
+  it('returns a valid cheer when omitting previous', () => {
+    for (const lang of LANGS) {
+      expect(CHEERS[lang]).toContain(nextCheer(lang));
+    }
   });
 });

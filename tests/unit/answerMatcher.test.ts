@@ -36,3 +36,55 @@ describe('isAnswerCorrect (lenient, FR-013)', () => {
     expect(isAnswerCorrect('   ', cowAnswers)).toBe(false);
   });
 });
+
+// Contract cases from contracts/answer-matcher.md
+describe('isAnswerCorrect — multilingual contract cases', () => {
+  // Ukrainian (Cyrillic)
+  it('C1 — uk exact: "муу" matches ["му","муу"]', () => {
+    expect(isAnswerCorrect('муу', ['му', 'муу'])).toBe(true);
+  });
+
+  it('C2 — uk repeated + uppercase: "МУУУУУ" matches ["му","муу"]', () => {
+    expect(isAnswerCorrect('МУУУУУ', ['му', 'муу'])).toBe(true);
+  });
+
+  it('C3 — uk embedded: "корова каже гав" matches ["гав","гав гав"]', () => {
+    expect(isAnswerCorrect('корова каже гав', ['гав', 'гав гав'])).toBe(true);
+  });
+
+  // Spanish
+  it('C4 — es exact: "muu" matches ["mu","muu"]', () => {
+    expect(isAnswerCorrect('muu', ['mu', 'muu'])).toBe(true);
+  });
+
+  it('C5 — es stretched: "muuuuuu" matches ["mu","muu"]', () => {
+    expect(isAnswerCorrect('muuuuuu', ['mu', 'muu'])).toBe(true);
+  });
+
+  // English (regression)
+  it('C6 — en punctuation: "MOO!!!" matches ["moo","mu","mooo"]', () => {
+    expect(isAnswerCorrect('MOO!!!', ['moo', 'mu', 'mooo'])).toBe(true);
+  });
+
+  it('C7 — en phrase: "the cow says moo" matches ["moo","mu"]', () => {
+    expect(isAnswerCorrect('the cow says moo', ['moo', 'mu'])).toBe(true);
+  });
+
+  // Reject cases
+  it('C8 — uk unrelated: "банан" does not match ["му","муу"]', () => {
+    expect(isAnswerCorrect('банан', ['му', 'муу'])).toBe(false);
+  });
+
+  it('C9 — es unrelated: "hola" does not match ["mu","muu"]', () => {
+    expect(isAnswerCorrect('hola', ['mu', 'muu'])).toBe(false);
+  });
+
+  it('C10 — uk cross-language: "woof" does not match ["му","муу"]', () => {
+    expect(isAnswerCorrect('woof', ['му', 'муу'])).toBe(false);
+  });
+
+  it('C11 — empty/whitespace: does not match any answers', () => {
+    expect(isAnswerCorrect('', ['му', 'mu'])).toBe(false);
+    expect(isAnswerCorrect('   ', ['му', 'mu'])).toBe(false);
+  });
+});

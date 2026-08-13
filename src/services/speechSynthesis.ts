@@ -1,7 +1,7 @@
 /** Text-to-speech contract. `speak` resolves even when unavailable so callers fall back to text. */
 export interface TtsService {
   isAvailable(): boolean;
-  speak(text: string): Promise<void>;
+  speak(text: string, lang?: string): Promise<void>;
   cancel(): void;
 }
 
@@ -15,7 +15,7 @@ export class WebSpeechTtsService implements TtsService {
     return !!this.synth && typeof SpeechSynthesisUtterance !== 'undefined';
   }
 
-  speak(text: string): Promise<void> {
+  speak(text: string, lang?: string): Promise<void> {
     const synth = this.synth;
     if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
       // No speech engine: resolve immediately so the UI shows on-screen text (FR-012).
@@ -28,9 +28,18 @@ export class WebSpeechTtsService implements TtsService {
       utterance.onend = () => resolve();
       utterance.onerror = () => resolve();
 
+      if (lang) {
+        utterance.lang = lang;
+      }
+
       // Reliable playback across engine quirks (research R9):
       const start = () => {
         if (synth.paused) synth.resume(); // Chrome can leave the engine paused
+        if (lang) {
+          const voices = synth.getVoices();
+          const match = voices.find((v) => v.lang.startsWith(lang.split('-')[0]));
+          if (match) utterance.voice = match;
+        }
         synth.speak(utterance);
       };
       // Clear any in-flight utterance, then start on a later tick so cancel() and speak()

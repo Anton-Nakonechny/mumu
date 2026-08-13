@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { learnPhraseFor, type Animal } from '../domain/animal';
 import type { TtsService } from '../services/speechSynthesis';
+import type { LanguageConfig, UI_STRINGS } from '../domain/language';
 import { AnimalCard } from './AnimalCard';
 
 interface LearnModeProps {
   animal: Animal;
   tts: TtsService;
+  strings: typeof UI_STRINGS['en'];
+  langConfig: LanguageConfig;
   onNext: () => void;
   onPrev: () => void;
 }
@@ -15,7 +18,7 @@ interface LearnModeProps {
  * each change; replay re-speaks; when TTS is unavailable the sentence is shown as text
  * (FR-002, FR-004, FR-012). Speech is cancelled before the next animal (R5).
  */
-export function LearnMode({ animal, tts, onNext, onPrev }: LearnModeProps) {
+export function LearnMode({ animal, tts, strings, langConfig, onNext, onPrev }: LearnModeProps) {
   const phrase = learnPhraseFor(animal);
   const spokenAvailable = tts.isAvailable();
   const lastSpokenId = useRef<string | null>(null);
@@ -23,11 +26,8 @@ export function LearnMode({ animal, tts, onNext, onPrev }: LearnModeProps) {
   useEffect(() => {
     if (lastSpokenId.current === animal.id) return;
     lastSpokenId.current = animal.id;
-    void tts.speak(phrase);
-    // No cleanup cancel: navigation cancels explicitly (see navigate) and speak() cancels
-    // any in-flight utterance itself. Cancelling here would let StrictMode's double-mount
-    // swallow the announcement (T039).
-  }, [animal.id, phrase, tts]);
+    void tts.speak(phrase, langConfig.ttsLang);
+  }, [animal.id, phrase, tts, langConfig.ttsLang]);
 
   const navigate = (fn: () => void) => {
     tts.cancel();
@@ -40,14 +40,14 @@ export function LearnMode({ animal, tts, onNext, onPrev }: LearnModeProps) {
       animal={animal}
       onNext={() => navigate(onNext)}
       onPrev={() => navigate(onPrev)}
-      onReplay={() => void tts.speak(phrase)}
+      onReplay={() => void tts.speak(phrase, langConfig.ttsLang)}
     >
       <p className="phrase-text" data-testid="learn-phrase">
         {phrase}
       </p>
       {!spokenAvailable && (
         <p className="audio-fallback" role="note">
-          (Audio is off — read it out loud!)
+          ({strings.audioOff})
         </p>
       )}
     </AnimalCard>

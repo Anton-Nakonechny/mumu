@@ -4,6 +4,7 @@ import { QuizMode } from '../../src/components/QuizMode';
 import type { Animal } from '../../src/domain/animal';
 import type { TtsService } from '../../src/services/speechSynthesis';
 import type { RecognitionService, RecognitionResult } from '../../src/services/speechRecognition';
+import { LANGUAGES, UI_STRINGS } from '../../src/domain/language';
 
 const cow: Animal = {
   id: 'cow',
@@ -12,6 +13,9 @@ const cow: Animal = {
   soundWord: 'muuuu',
   acceptedAnswers: ['moo', 'muuu'],
 };
+
+const enStrings = UI_STRINGS['en'];
+const enConfig = LANGUAGES.find((l) => l.code === 'en')!;
 
 function makeTts(): TtsService {
   return { isAvailable: () => true, speak: vi.fn().mockResolvedValue(undefined), cancel: vi.fn() };
@@ -40,17 +44,17 @@ describe('QuizMode (User Story 2)', () => {
     const tts = makeTts();
     const recognition = makeRecognition({ result: { transcript: 'moo', noSpeech: false } });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={vi.fn()} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
     );
     expect(screen.getByTestId('quiz-prompt')).toHaveTextContent('What does the cow say?');
-    await waitFor(() => expect(tts.speak).toHaveBeenCalledWith('What does the cow say?'));
+    await waitFor(() => expect(tts.speak).toHaveBeenCalledWith('What does the cow say?', enConfig.ttsLang));
   });
 
   it('celebrates a correct spoken answer', async () => {
     const tts = makeTts();
     const recognition = makeRecognition({ result: { transcript: 'moooo', noSpeech: false } });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={vi.fn()} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
     );
     await waitFor(() => expect(screen.getByTestId('feedback')).toHaveTextContent(/right/i));
   });
@@ -59,14 +63,29 @@ describe('QuizMode (User Story 2)', () => {
     const tts = makeTts();
     const recognition = makeRecognition({ result: { transcript: 'banana', noSpeech: false } });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={vi.fn()} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
     );
-    // First miss happens automatically on mount.
     await waitFor(() => expect(screen.getByTestId('feedback')).toHaveTextContent(/try/i));
-    // Second attempt via the Listen button → reveal.
     fireEvent.click(screen.getByTestId('listen-button'));
     await waitFor(() => expect(screen.getByTestId('feedback')).toHaveTextContent(/muuuu/));
-    expect(tts.speak).toHaveBeenCalledWith('muuuu');
+    expect(tts.speak).toHaveBeenCalledWith('muuuu', enConfig.ttsLang);
+  });
+
+  it('shows the unavailable (reveal/skip) state while the recognizer is still loading (FR-012, FR-013)', () => {
+    const tts = makeTts();
+    // A permission request that never settles simulates a model still downloading.
+    const recognition: RecognitionService = {
+      isAvailable: () => false,
+      requestPermission: vi.fn().mockReturnValue(new Promise(() => {})),
+      listenOnce: vi.fn(),
+      stop: vi.fn(),
+    };
+    render(
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
+    );
+    expect(screen.getByTestId('feedback')).toHaveTextContent(enStrings.micUnavailable.slice(0, 20));
+    expect(screen.getByTestId('feedback')).not.toHaveTextContent(enStrings.quizListening);
+    expect(screen.queryByTestId('listen-button')).toBeNull();
   });
 
   it('never blocks when the microphone is denied (FR-011, SC-006)', async () => {
@@ -74,10 +93,10 @@ describe('QuizMode (User Story 2)', () => {
     const onNext = vi.fn();
     const recognition = makeRecognition({ permission: 'denied', available: false });
     render(
-      <QuizMode animal={cow} tts={tts} recognition={recognition} onNext={onNext} onPrev={vi.fn()} />,
+      <QuizMode animal={cow} tts={tts} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={onNext} onPrev={vi.fn()} />,
     );
     await waitFor(() =>
-      expect(screen.getByTestId('feedback')).toHaveTextContent(/isn’t available|not available|available/i),
+      expect(screen.getByTestId('feedback')).toHaveTextContent(/isn't available|not available|available/i),
     );
     expect(recognition.listenOnce).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Next animal' }));
