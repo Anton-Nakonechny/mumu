@@ -9,3 +9,4 @@ tsconfig.tsbuildinfo
 *.iml
 .idea/
 public/assets/models/
+certs/

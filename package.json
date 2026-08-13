@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "cert": "mkcert -cert-file certs/dev-cert.pem -key-file certs/dev-key.pem anakon.local localhost 127.0.0.1 ::1 $(ipconfig getifaddr en0)",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
