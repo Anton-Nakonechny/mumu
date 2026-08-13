@@ -33,15 +33,6 @@ export function AnimalCard({ animal, onNext, onPrev, onReplay, children }: Anima
 
   return (
     <div className="animal-card" onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
-      <button
-        type="button"
-        className="nav-button nav-prev"
-        aria-label="Previous animal"
-        onClick={onPrev}
-      >
-        ◀
-      </button>
-
       <div className="animal-stage">
         <img
           className="animal-image"
@@ -60,14 +51,24 @@ export function AnimalCard({ animal, onNext, onPrev, onReplay, children }: Anima
         {children}
       </div>
 
-      <button
-        type="button"
-        className="nav-button nav-next"
-        aria-label="Next animal"
-        onClick={onNext}
-      >
-        ▶
-      </button>
+      <div className="nav-row">
+        <button
+          type="button"
+          className="nav-button nav-prev"
+          aria-label="Previous animal"
+          onClick={onPrev}
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          className="nav-button nav-next"
+          aria-label="Next animal"
+          onClick={onNext}
+        >
+          ▶
+        </button>
+      </div>
     </div>
   );
 }

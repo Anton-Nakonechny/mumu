@@ -13,13 +13,13 @@ test('no audio/transcript leaves the device during Quiz mode', async ({ page }) 
   const suspicious: string[] = [];
   page.on('request', (req) => {
     const url = req.url();
-    if (new URL(url).origin === new URL(page.url() || 'http://localhost:5173').origin) return;
+    if (new URL(url).origin === new URL(page.url() || 'https://localhost:5173').origin) return;
     if (AUDIO_HINTS.some((re) => re.test(url))) suspicious.push(url);
     // Any POST leaving the origin during recognition is itself worth flagging.
     if (req.method() === 'POST') suspicious.push(`POST ${url}`);
   });
 
-  await page.goto('http://localhost:5173/');
+  await page.goto('/');
   await page.getByRole('button', { name: /Quiz/ }).click();
   // Give the recognizer time to run (grant mic via test fixtures in a real run).
   await page.waitForTimeout(3000);
