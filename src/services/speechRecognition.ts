@@ -49,6 +49,11 @@ interface VoskModel {
  * Latin sound-alike entries in animals.json bridge to a correct verdict. This consciously
  * supersedes FR-007 (which targeted the old cloud recognizer silently failing); here the
  * choice is explicit and preserves the on-device/offline privacy guarantee.
+ *
+ * Consequence: because the English model emits only Latin text, every `uk` animal must be
+ * authored with Latin sound-alike acceptedAnswers; a `uk` animal with Cyrillic-only answers
+ * is unmatchable by design. See README ("Ukrainian goes through the English model") and
+ * specs/005-fix-multilingual-quiz/research.md (R5).
  */
 export const MODEL_URLS: Record<Language, string> = {
   en: '/assets/models/vosk-model-small-en-us-0.15.tar.gz',

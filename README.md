@@ -74,19 +74,36 @@ Animals are defined by pictures plus a companion metadata file — edit data, no
    ```json
    {
      "id": "cat",
-     "name": "cat",
      "image": "assets/animals/cat.png",
-     "soundWord": "meow",
-     "acceptedAnswers": ["meow", "miaow", "meaow"]
+     "translations": {
+       "en": {
+         "name": "cat",
+         "soundWord": "meow",
+         "acceptedAnswers": ["meow", "miaow", "meaow"]
+       },
+       "uk": {
+         "name": "кіт",
+         "soundWord": "мяу",
+         "acceptedAnswers": ["мяу", "мяв", "meow", "meaw"],
+         "learnPhrase": "Кіт каже... мяу!",
+         "quizPrompt": "Що каже кіт?"
+       }
+     }
    }
    ```
 
-   - `soundWord` is what Learn mode says.
+   - `translations` holds one block per language (`en`, `uk`, `es`); add only the
+     languages you want to support for that animal.
+   - `name` / `soundWord` are the localized label and the sound Learn mode says.
    - `acceptedAnswers` are the spoken answers Quiz mode accepts (matched leniently).
-   - Optional `learnPhrase` / `quizPrompt` override the default sentences.
+     For `uk`, include **Latin sound-alikes** (e.g. `"meow"`) — the recognizer emits
+     Latin text, so Cyrillic-only answers won't match (see the trade-off note below).
+   - Optional `learnPhrase` / `quizPrompt` override the default sentences per language.
+   - A language you omit falls back to the `en` block; an animal with no usable
+     `en` (or requested) translation is dropped from the roster.
 
-   The full shape is described in
-   [`specs/001-animal-sounds-quiz/contracts/animals-metadata.schema.json`](specs/001-animal-sounds-quiz/contracts/animals-metadata.schema.json).
+   The full shape is the `LocalizedAnimalData` / `LocalizedTranslation` types in
+   [`src/domain/animal.ts`](src/domain/animal.ts).
 
 3. Reload — the new animal appears in rotation. Remove all entries and the app shows a
    friendly empty state.
@@ -97,6 +114,35 @@ Recognition uses a WebAssembly recognizer (`vosk-browser`) constrained to the ex
 animal sounds. Place a Vosk model under `public/assets/models/` (see
 `src/services/speechRecognition.ts` for the expected path). Without a model, Quiz mode
 degrades gracefully: the child can still reveal the sound and move on.
+
+### Ukrainian goes through the English model (a deliberate trade-off)
+
+Ukrainian sessions **reuse the English acoustic model** in free-form mode as a
+cross-lingual phonetic approximator: it hears "муу" and emits its nearest English
+word, "moo". The English model only ever produces **Latin** text, never Cyrillic.
+
+**What this means when you add a Ukrainian animal:** it is only recognized if its
+`acceptedAnswers` include **Latin sound-alikes** (e.g. cow → `"moo"`, dog → `"gov"`,
+`"hob"`). Answers left **Cyrillic-only are unmatchable by design** — a Latin
+transcript and a Cyrillic target never share a consonant skeleton, so the matcher
+can't bridge them. This never produces a false "wrong": the worst case is a
+near-miss that falls through to the child-safe reveal/skip path. Today this works
+for exactly the two Ukrainian animals (cow, dog) that were given Latin variants.
+
+Why not fix it the obvious ways?
+
+- **A bigger Ukrainian model won't fit the target device.** The `-small` UK model's
+  uncompressed in-memory footprint (~133 MB) risks crashing a mobile in-app browser
+  tab — outside our device budget. (The nano UK model *does* fit but its lexicon
+  lacks the onomatopoeia and `[unk]`, so its grammar collapses to empty transcripts.)
+- **A cloud/backend recognizer is ruled out for this app.** It would break the
+  on-device/offline guarantee, require a hosted proxy plus API keys (which can't ship
+  in-client), add network latency and a multi-node architecture, and open a
+  data-privacy/COPPA obligation for toddler voice.
+
+Full rationale and rejected alternatives:
+[`specs/005-fix-multilingual-quiz/research.md`](specs/005-fix-multilingual-quiz/research.md)
+(section R5).
 
 ## Project layout
 

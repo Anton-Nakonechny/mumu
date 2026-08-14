@@ -80,7 +80,7 @@ Keep everything on-device and offline. Instead of the Ukrainian nano model, rout
 - *Cloud STT / multimodal-LLM judge:* requires a hosted backend proxy (API keys can't ship in-client) + breaks offline + opens COPPA/privacy obligation for toddler voice; user ruled out backend as last-resort for this app.
 - *Custom phoneme dictionary for the nano model:* lexicon compilation requires offline tooling and per-word G2P; out of scope for a lightweight bugfix.
 
-**Limitations accepted:** simple short vowel sounds match reliably; complex consonant clusters may occasionally need extra tuned Latin variants. No sound should ever produce a false "wrong" — the worst case is a near-miss that falls through to the reveal/skip path.
+**Limitations accepted:** simple short vowel sounds match reliably; complex consonant clusters may occasionally need extra tuned Latin variants. No sound should ever produce a false "wrong" — the worst case is a near-miss that falls through to the reveal/skip path. **Authoring constraint:** because the English model only ever emits Latin text and the consonant-skeleton matcher needs a shared script/skeleton, every `uk` animal must be authored with Latin sound-alike `acceptedAnswers` (e.g. "moo", "gov", "hob"); a `uk` animal whose answers stay Cyrillic-only is unmatchable by design. This feature therefore covers exactly the animals given Latin variants (currently cow and dog).
 
 ---
 
