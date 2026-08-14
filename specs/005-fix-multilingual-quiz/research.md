@@ -60,6 +60,30 @@ Each must be packaged as a `.tar.gz` in the same layout `vosk-browser` expects (
 
 ---
 
+## R5 — Ukrainian recognition via English acoustic model (bugfix follow-up, 2026-08-14)
+
+**Root cause (confirmed from console log):** `speechRecognition.ts` builds a closed-word-list grammar from `acceptedAnswers + ["[unk]"]`. The bundled `vosk-model-small-uk-v3-nano` logs `Ignoring word missing in vocabulary` for onomatopoeia ("муу") **and** for `[unk]`. With both the answer words and the escape token missing from the nano lexicon, the grammar collapses and every decode returns an empty transcript — so every attempt fails, forcing the `revealed` phase. English and Spanish were unaffected because their small models include `[unk]` and enough in-lexicon answer words for the grammar path to remain valid.
+
+**Decision: English acoustic model as on-device phonetic approximator for Ukrainian.**
+
+Keep everything on-device and offline. Instead of the Ukrainian nano model, route Ukrainian sessions to the existing English model (`vosk-model-small-en-us-0.15`). The recognizer runs in **free-form mode** (no `expectedWords` grammar) so the model emits its best-guess English words for Ukrainian phonemes (e.g. "муу" → "moo", "гав гав" → "gov gov"). Latin sound-alike `acceptedAnswers` (authored from empirically logged transcripts) and a **consonant-skeleton phonetic matcher** (e.g. "cook a rico" ≈ "kukuriku") bridge the gap.
+
+**Benefits:**
+- Preserves on-device/offline and privacy guarantees (no backend, no COPPA obligation, no FR-007 cloud path).
+- Reuses the single ~41 MB English model already shipped — Ukrainian session memory footprint goes **down** (no 73 MB nano model needed).
+- The now-unused `vosk-model-small-uk-v3-small.tar.gz` asset is removed from `public/assets/models/`.
+
+**Consciously supersedes FR-007** ("must not substitute the English recognizer for a non-English language"). FR-007 was written to prevent the old cloud recognizer silently failing; here the English acoustic model is deliberately used as a phonetic approximator with full awareness of the trade-off.
+
+**Alternatives rejected:**
+- *Bigger UK model (`-small`, ~133 MB):* uncompressed in-memory footprint risks crashing a mobile in-app browser tab.
+- *Cloud STT / multimodal-LLM judge:* requires a hosted backend proxy (API keys can't ship in-client) + breaks offline + opens COPPA/privacy obligation for toddler voice; user ruled out backend as last-resort for this app.
+- *Custom phoneme dictionary for the nano model:* lexicon compilation requires offline tooling and per-word G2P; out of scope for a lightweight bugfix.
+
+**Limitations accepted:** simple short vowel sounds match reliably; complex consonant clusters may occasionally need extra tuned Latin variants. No sound should ever produce a false "wrong" — the worst case is a near-miss that falls through to the reveal/skip path.
+
+---
+
 ## R4 — Localized quiz-feedback strings
 
 **Decision**: Extend the existing per-language `UI_STRINGS` tables (`src/domain/language.ts`) with the four missing feedback strings — `quizCorrect`, `quizTryAgain`, `quizRevealed` (a template containing a `{sound}` placeholder), and `quizListening` — and render them from `strings` in `Feedback.tsx`. Preserve `micUnavailable` exactly.

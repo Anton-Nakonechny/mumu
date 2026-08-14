@@ -11,7 +11,7 @@
       "uk": {
         "name": "корова",
         "soundWord": "муу",
-        "acceptedAnswers": ["му", "муу", "мо", "муу"],
+        "acceptedAnswers": ["му", "муу", "мо", "moo", "mu"],
         "learnPhrase": "Корова каже... муу!",
         "quizPrompt": "Що каже корова?"
       },
@@ -36,7 +36,7 @@
       "uk": {
         "name": "собака",
         "soundWord": "гав гав",
-        "acceptedAnswers": ["гав", "гав гав", "ав"],
+        "acceptedAnswers": ["гав", "гав гав", "ав", "gov", "gov gov", "gab", "hob"],
         "learnPhrase": "Собака каже... гав гав!",
         "quizPrompt": "Що каже собака?"
       },

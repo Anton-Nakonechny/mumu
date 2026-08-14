@@ -40,10 +40,19 @@ interface VoskModel {
   terminate?(): void;
 }
 
-/** Per-language bundled on-device Vosk model paths (FR-007, FR-013). */
+/**
+ * Per-language bundled on-device Vosk model paths.
+ * Ukrainian intentionally reuses the English acoustic model as a cross-lingual phonetic
+ * approximator: the nano UK model's lexicon lacks the onomatopoeia and [unk], collapsing the
+ * closed-word grammar and returning empty transcripts. Using the English model in free-form
+ * mode emits the nearest English words (e.g. "муу"→"moo"), which the phonetic matcher and
+ * Latin sound-alike entries in animals.json bridge to a correct verdict. This consciously
+ * supersedes FR-007 (which targeted the old cloud recognizer silently failing); here the
+ * choice is explicit and preserves the on-device/offline privacy guarantee.
+ */
 export const MODEL_URLS: Record<Language, string> = {
   en: '/assets/models/vosk-model-small-en-us-0.15.tar.gz',
-  uk: '/assets/models/vosk-model-small-uk-v3-nano.tar.gz',
+  uk: '/assets/models/vosk-model-small-en-us-0.15.tar.gz',
   es: '/assets/models/vosk-model-small-es-0.42.tar.gz',
 };
 
@@ -121,7 +130,7 @@ export class OnDeviceRecognitionService implements RecognitionService {
         settled = true;
         clearTimeout(timer);
         recognizer.remove?.();
-        void ctx.close();
+        if (ctx.state !== 'closed') void ctx.close();
         resolve({ transcript, noSpeech: transcript.trim().length === 0 });
       };
       recognizer.on('result', (message) => finish(message.result.text ?? ''));
@@ -139,7 +148,7 @@ export class OnDeviceRecognitionService implements RecognitionService {
 
   stop(): void {
     this.stopped = true;
-    void this.audioContext?.close();
+    if (this.audioContext && this.audioContext.state !== 'closed') void this.audioContext.close();
     this.audioContext = null;
   }
 }

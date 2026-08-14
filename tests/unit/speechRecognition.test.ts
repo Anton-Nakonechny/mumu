@@ -17,14 +17,14 @@ describe('makeRecognitionService — per-language on-device model selection (FR-
     expect(modelUrl).not.toContain('es');
   });
 
-  it('T013/uk: creates a service referencing the Ukrainian model URL', async () => {
+  it('T013/uk: Ukrainian sessions use the English acoustic model (on-device phonetic approximator; supersedes FR-007)', async () => {
     const { makeRecognitionService, MODEL_URLS } = await import('../../src/services/speechRecognition');
     const svc = makeRecognitionService('uk');
     const modelUrl = MODEL_URLS['uk'];
-    expect(modelUrl).toContain('vosk-model-small-uk');
+    expect(modelUrl).toContain('vosk-model-small-en-us');
     expect(svc).toBeDefined();
-    expect(modelUrl).toMatch(/^\/assets\/models\//); // absolute path per T016/T029
-    expect(modelUrl).not.toContain('en-us');
+    expect(modelUrl).toMatch(/^\/assets\/models\//);
+    expect(modelUrl).not.toContain('uk');
     expect(modelUrl).not.toContain('es');
   });
 

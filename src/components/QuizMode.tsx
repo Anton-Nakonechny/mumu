@@ -79,7 +79,12 @@ export function QuizMode({ animal, tts, recognition, lang, strings, langConfig, 
     // while we're listening or cheering, clearAutoAdvance() bumps it and we bail below.
     const gen = advanceGenRef.current;
     setIsListening(true);
-    const result = await recognition.listenOnce({ expectedWords: animal.acceptedAnswers });
+    // Ukrainian is decoded free-form through the English acoustic model (its nano model
+    // collapses under a closed grammar), but en/es keep their own model's grammar-constrained
+    // accuracy rather than free-decoding against the whole vocabulary.
+    const result = await recognition.listenOnce(
+      lang === 'uk' ? {} : { expectedWords: animal.acceptedAnswers },
+    );
     setIsListening(false);
     const correct = isAnswerCorrect(result.transcript, animal.acceptedAnswers);
     const next = sessionRef.current.registerResult(correct);

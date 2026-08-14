@@ -88,6 +88,25 @@ describe('QuizMode (User Story 2)', () => {
     expect(screen.queryByTestId('listen-button')).toBeNull();
   });
 
+  it('constrains the grammar for native-model languages (en/es) to preserve their accuracy', async () => {
+    const recognition = makeRecognition({ result: { transcript: 'moo', noSpeech: false } });
+    render(
+      <QuizMode animal={cow} tts={makeTts()} recognition={recognition} lang="en" strings={enStrings} langConfig={enConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
+    );
+    await waitFor(() =>
+      expect(recognition.listenOnce).toHaveBeenCalledWith({ expectedWords: cow.acceptedAnswers }),
+    );
+  });
+
+  it('free-forms Ukrainian (English acoustic model) to avoid closed-grammar collapse', async () => {
+    const ukConfig = LANGUAGES.find((l) => l.code === 'uk')!;
+    const recognition = makeRecognition({ result: { transcript: 'moo', noSpeech: false } });
+    render(
+      <QuizMode animal={cow} tts={makeTts()} recognition={recognition} lang="uk" strings={UI_STRINGS['uk']} langConfig={ukConfig} onNext={vi.fn()} onPrev={vi.fn()} />,
+    );
+    await waitFor(() => expect(recognition.listenOnce).toHaveBeenCalledWith({}));
+  });
+
   it('never blocks when the microphone is denied (FR-011, SC-006)', async () => {
     const tts = makeTts();
     const onNext = vi.fn();

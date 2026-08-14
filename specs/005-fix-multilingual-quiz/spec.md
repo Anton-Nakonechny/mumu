@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-13
 
-**Status**: Draft
+**Status**: Implemented (2026-08-14) — Ukrainian recognition bugfix via English acoustic model as phonetic approximator; consciously supersedes FR-007 (see research.md R5).
 
 **Input**: User description: "in a multi-language feature the feedback is in English, also, it fails the check when I say 'muu' in Ukrainian/Spanish but succeeds in English. Is the other recognition model(s) needed to be wired?"
 

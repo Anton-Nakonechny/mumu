@@ -88,3 +88,40 @@ describe('isAnswerCorrect — multilingual contract cases', () => {
     expect(isAnswerCorrect('   ', ['му', 'mu'])).toBe(false);
   });
 });
+
+// Phonetic matching: English acoustic model used as Ukrainian phonetic approximator.
+// The English model hears Ukrainian phonemes and emits the nearest English words;
+// a consonant-skeleton comparison bridges the gap for multi-word approximations.
+describe('isAnswerCorrect — phonetic match (English model as Ukrainian approximator)', () => {
+  it('P1 — "gov" (English model approximation of "гав") matches ["gav"]', () => {
+    expect(isAnswerCorrect('gov', ['gav'])).toBe(true);
+  });
+
+  it('P2 — "gov gov" matches ["gav gav"]', () => {
+    expect(isAnswerCorrect('gov gov', ['gav gav'])).toBe(true);
+  });
+
+  it('P3 — "cook a rico" (English model hears "кукуріку") matches ["kukuriku"]', () => {
+    expect(isAnswerCorrect('cook a rico', ['kukuriku'])).toBe(true);
+  });
+
+  it('P4 — phonetic match does not false-accept unrelated English words', () => {
+    expect(isAnswerCorrect('hello there', ['gav'])).toBe(false);
+    expect(isAnswerCorrect('banana', ['moo'])).toBe(false);
+  });
+
+  it('P5 — short consonant skeletons do not collide (mama/home ≠ moo)', () => {
+    // 'mama'→'mm' and 'home'→'hm' are within one skeleton-edit of 'moo'→'m' and used to
+    // false-accept via phoneticMatch alone (no fuzzy/substring path reaches them). Now rejected.
+    expect(isAnswerCorrect('mama', ['moo', 'mu'])).toBe(false);
+    expect(isAnswerCorrect('home', ['moo', 'mu'])).toBe(false);
+  });
+
+  it('P6 — a single-letter accepted answer is not a near-wildcard', () => {
+    // Regression: a length-1 answer ('m') must not match any transcript containing that letter.
+    expect(isAnswerCorrect('banana', ['m'])).toBe(false);
+    expect(isAnswerCorrect('hello', ['m'])).toBe(false);
+    expect(isAnswerCorrect('n', ['m'])).toBe(false);
+    expect(isAnswerCorrect('m', ['m'])).toBe(true); // exact still matches
+  });
+});
