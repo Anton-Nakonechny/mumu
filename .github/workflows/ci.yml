@@ -30,6 +30,8 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: npm run build
       - run: npx playwright install --with-deps
-      # playwright.ci.config.ts uses plain HTTP so no mkcert certs are needed.
+      # playwright.ci.config.ts serves the built dist/ via `vite preview` (plain HTTP,
+      # no mkcert certs, no allowedHosts restriction from the dev server).
       - run: npx playwright test --config playwright.ci.config.ts
