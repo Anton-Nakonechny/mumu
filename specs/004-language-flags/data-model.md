@@ -163,7 +163,7 @@ Animal  (runtime, language-resolved)
 [
   {
     "id": "cow",
-    "image": "assets/animals/cow.avif",
+    "image": "assets/animals/cow.webp",
     "translations": {
       "en": {
         "name": "cow",

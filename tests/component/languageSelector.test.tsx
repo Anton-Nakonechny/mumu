@@ -78,7 +78,7 @@ describe('LanguageSelector — interaction', () => {
 describe('LanguageSelector — visible in both modes (US2)', () => {
   const cowLocalized: LocalizedAnimalData = {
     id: 'cow',
-    image: 'assets/animals/cow.avif',
+    image: 'assets/animals/cow.webp',
     translations: { en: { name: 'cow', soundWord: 'muuuu', acceptedAnswers: ['moo'] } },
   };
   const repo: AnimalsRepository = {

@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { parseAnimal, parseAnimals, parseLocalizedAnimal, parseLocalizedAnimals } from '../../src/services/animalsRepository';
-import { resolveAnimal, resolveAnimals } from '../../src/domain/animal';
+import { resolveAnimal, resolveAnimals, AnimalCollection } from '../../src/domain/animal';
+import animalsData from '../../public/assets/animals.json';
 
 const valid = {
   id: 'cow',
   name: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   soundWord: 'muuuu',
   acceptedAnswers: ['MUUU', 'Moo'],
 };
@@ -50,7 +51,7 @@ describe('parseAnimals list handling', () => {
 
 const validLocalized = {
   id: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   translations: {
     en: { name: 'cow', soundWord: 'moo', acceptedAnswers: ['Moo', 'MOOO'] },
     uk: { name: 'корова', soundWord: 'муу', acceptedAnswers: ['Муу', 'Му'], learnPhrase: 'Корова каже... муу!' },
@@ -168,5 +169,82 @@ describe('resolveAnimals', () => {
     );
     expect(list).toHaveLength(1);
     expect(list[0].name).toBe('корова');
+  });
+});
+
+// T011 — 9-animal roster (006-add-more-animals)
+describe('9-animal roster — 006-add-more-animals', () => {
+  const NEW_IDS = ['duck', 'chicken', 'rooster', 'wolf', 'goat', 'sheep', 'turkey'];
+
+  it('parseLocalizedAnimals(animals.json) yields 9 entries', () => {
+    const list = parseLocalizedAnimals(animalsData);
+    expect(list).toHaveLength(9);
+  });
+
+  it('each new animal resolves in en with non-empty name, soundWord, and image', () => {
+    const list = parseLocalizedAnimals(animalsData);
+    const resolved = resolveAnimals(list, 'en');
+    for (const id of NEW_IDS) {
+      const animal = resolved.find((a) => a.id === id);
+      expect(animal, `${id}: missing from resolved en roster`).toBeDefined();
+      expect(animal!.name.length, `${id}: empty name`).toBeGreaterThan(0);
+      expect(animal!.soundWord.length, `${id}: empty soundWord`).toBeGreaterThan(0);
+      expect(animal!.image.length, `${id}: empty image`).toBeGreaterThan(0);
+    }
+  });
+
+  it('AnimalCollection.next() wraps from last animal back to first across 9 animals', () => {
+    const coll = new AnimalCollection(resolveAnimals(parseLocalizedAnimals(animalsData), 'en'));
+    expect(coll.size).toBe(9);
+    for (let i = 0; i < 8; i++) coll.next();
+    expect(coll.currentIndex).toBe(8);
+    coll.next();
+    expect(coll.currentIndex).toBe(0);
+  });
+
+  it('AnimalCollection.prev() wraps from first animal back to last across 9 animals', () => {
+    const coll = new AnimalCollection(resolveAnimals(parseLocalizedAnimals(animalsData), 'en'));
+    coll.prev();
+    expect(coll.currentIndex).toBe(8);
+  });
+});
+
+// T019 — UK/ES localization for new animals (006-add-more-animals)
+describe('UK/ES localization for new animals — 006-add-more-animals', () => {
+  const NEW_IDS = ['duck', 'chicken', 'rooster', 'wolf', 'goat', 'sheep', 'turkey'];
+
+  it('each new animal resolves a localized (non-fallback) name in uk', () => {
+    const list = parseLocalizedAnimals(animalsData);
+    const enResolved = resolveAnimals(list, 'en');
+    const ukResolved = resolveAnimals(list, 'uk');
+    for (const id of NEW_IDS) {
+      const enAnimal = enResolved.find((a) => a.id === id);
+      const ukAnimal = ukResolved.find((a) => a.id === id);
+      expect(ukAnimal, `${id}: missing from uk roster`).toBeDefined();
+      expect(ukAnimal!.name, `${id}: uk name equals en fallback — no uk block`).not.toBe(enAnimal?.name);
+    }
+  });
+
+  it('each new animal resolves a localized (non-fallback) name in es', () => {
+    const list = parseLocalizedAnimals(animalsData);
+    const enResolved = resolveAnimals(list, 'en');
+    const esResolved = resolveAnimals(list, 'es');
+    for (const id of NEW_IDS) {
+      const enAnimal = enResolved.find((a) => a.id === id);
+      const esAnimal = esResolved.find((a) => a.id === id);
+      expect(esAnimal, `${id}: missing from es roster`).toBeDefined();
+      expect(esAnimal!.name, `${id}: es name equals en fallback — no es block`).not.toBe(enAnimal?.name);
+    }
+  });
+
+  it('each new animal uk block contains at least one Latin sound-alike in acceptedAnswers', () => {
+    const list = parseLocalizedAnimals(animalsData);
+    const LATIN_CHAR = /[a-z]/i;
+    for (const entry of list.filter((d) => NEW_IDS.includes(d.id))) {
+      const ukTrans = entry.translations['uk'];
+      expect(ukTrans, `${entry.id}: missing uk block`).toBeDefined();
+      const hasLatin = ukTrans!.acceptedAnswers.some((a) => LATIN_CHAR.test(a));
+      expect(hasLatin, `${entry.id}: uk block has no Latin sound-alike in acceptedAnswers`).toBe(true);
+    }
   });
 });

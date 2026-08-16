@@ -45,7 +45,7 @@ Single-project frontend SPA (per plan.md): source in `src/`, static content in `
 - [X] T005 [P] Define `Animal` type/interface and phrase defaults (`learnPhrase`/`quizPrompt`) in `src/domain/animal.ts`
 - [X] T006 [P] Write FAILING unit tests for `AnimalCollection` (next/prev, wrap-around loop, empty collection) in `tests/unit/animalCollection.test.ts`
 - [X] T007 Implement `AnimalCollection` (current/next/prev/loop, `isEmpty`) in `src/domain/animal.ts` to pass T006
-- [X] T008 [P] Create sample content: `public/assets/animals.json` (cow + dog entries per `contracts/animals-metadata.schema.json`) and place the dog `.png` and cow `.avif` under `public/assets/animals/`
+- [X] T008 [P] Create sample content: `public/assets/animals.json` (cow + dog entries per `contracts/animals-metadata.schema.json`) and place the dog `.png` and cow `.png` under `public/assets/animals/`
 - [X] T009 [P] Write FAILING unit tests for `AnimalsRepository` (validates against schema, skips invalid entries, lowercases `acceptedAnswers`, returns empty list when none valid) in `tests/unit/animalsRepository.test.ts`
 - [X] T010 Implement `AnimalsRepository.loadAnimals()` (fetch + validate `animals.json`, filter invalid, image-ref check) in `src/services/animalsRepository.ts` to pass T009
 - [X] T011 Implement `TtsService` (Web Speech `SpeechSynthesis`: `isAvailable`, `speak` resolving even when unavailable, `cancel`) in `src/services/speechSynthesis.ts`

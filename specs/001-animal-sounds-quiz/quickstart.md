@@ -7,7 +7,7 @@ How to run the app and validate the feature end-to-end. Implementation details l
 
 - Node.js 20+ and npm.
 - A modern browser (Chrome/Edge/Safari/Firefox). Quiz mode needs a **microphone**.
-- Sample content present: at least the dog (`.png`) and cow (`.avif`) images under
+- Sample content present: at least the dog (`.png`) and cow (`.png`) images under
   `public/assets/animals/` with matching entries in `public/assets/animals.json`
   (see `contracts/animals-metadata.schema.json`).
 

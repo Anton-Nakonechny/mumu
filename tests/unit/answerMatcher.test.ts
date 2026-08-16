@@ -89,6 +89,58 @@ describe('isAnswerCorrect — multilingual contract cases', () => {
   });
 });
 
+// T015 — New animal sound matching (006-add-more-animals)
+describe('new animal sounds — 006-add-more-animals', () => {
+  it('duck — quack recognized', () => {
+    const answers = ['quack', 'quack quack', 'quackquack'];
+    expect(isAnswerCorrect('quack', answers)).toBe(true);
+    expect(isAnswerCorrect('quack quack', answers)).toBe(true);
+  });
+
+  it('chicken — cluck recognized', () => {
+    const answers = ['cluck', 'cluck cluck', 'bawk', 'buck', 'cluk'];
+    expect(isAnswerCorrect('cluck', answers)).toBe(true);
+    expect(isAnswerCorrect('bawk', answers)).toBe(true);
+  });
+
+  it('rooster — cock recognized', () => {
+    const answers = ['cockadoodledoo', 'cock a doodle doo', 'cock', 'doodle', 'crow'];
+    expect(isAnswerCorrect('cock', answers)).toBe(true);
+    expect(isAnswerCorrect('crow', answers)).toBe(true);
+  });
+
+  it('wolf — awoo or howl recognized', () => {
+    const answers = ['howl', 'awoo', 'ah woo', 'woo', 'owoo'];
+    expect(isAnswerCorrect('awoo', answers)).toBe(true);
+    expect(isAnswerCorrect('howl', answers)).toBe(true);
+    expect(isAnswerCorrect('woo', answers)).toBe(true);
+  });
+
+  it('goat — maa recognized', () => {
+    const answers = ['maa', 'ma', 'mah', 'baa', 'meh'];
+    expect(isAnswerCorrect('maa', answers)).toBe(true);
+    expect(isAnswerCorrect('meh', answers)).toBe(true);
+  });
+
+  it('sheep — baa recognized', () => {
+    const answers = ['baa', 'ba', 'bah', 'maa'];
+    expect(isAnswerCorrect('baa', answers)).toBe(true);
+    expect(isAnswerCorrect('baaa', answers)).toBe(true);
+  });
+
+  it('turkey — gobble recognized', () => {
+    const answers = ['gobble', 'gobble gobble', 'gobbles', 'wobble'];
+    expect(isAnswerCorrect('gobble', answers)).toBe(true);
+  });
+
+  it('unrelated words do not match new animal sounds', () => {
+    const duckAnswers = ['quack', 'quack quack', 'quackquack'];
+    expect(isAnswerCorrect('moo', duckAnswers)).toBe(false);
+    expect(isAnswerCorrect('woof', duckAnswers)).toBe(false);
+    expect(isAnswerCorrect('banana', duckAnswers)).toBe(false);
+  });
+});
+
 // Phonetic matching: English acoustic model used as Ukrainian phonetic approximator.
 // The English model hears Ukrainian phonemes and emits the nearest English words;
 // a consonant-skeleton comparison bridges the gap for multi-word approximations.

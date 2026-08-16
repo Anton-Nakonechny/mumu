@@ -6,7 +6,7 @@ import type { Animal } from '../../src/domain/animal';
 const cow: Animal = {
   id: 'cow',
   name: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   soundWord: 'muuuu',
   acceptedAnswers: ['moo'],
 };
@@ -25,7 +25,7 @@ describe('AnimalCard', () => {
   it('renders the animal picture', () => {
     setup();
     const img = screen.getByRole('img', { name: 'cow' }) as HTMLImageElement;
-    expect(img.getAttribute('src')).toContain('cow.avif');
+    expect(img.getAttribute('src')).toContain('cow.webp');
   });
 
   it('fires onNext / onPrev from the large buttons', () => {
