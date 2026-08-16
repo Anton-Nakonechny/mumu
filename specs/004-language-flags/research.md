@@ -9,7 +9,7 @@
 ```json
 [{
   "id": "cow",
-  "image": "assets/animals/cow.avif",
+  "image": "assets/animals/cow.webp",
   "translations": {
     "en": { "name": "cow", "soundWord": "moo", "acceptedAnswers": ["moo", "mooo", "muuu"] },
     "uk": { "name": "корова", "soundWord": "му", "acceptedAnswers": ["му", "муу", "муу", "мо"] },

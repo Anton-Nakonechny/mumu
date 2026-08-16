@@ -11,14 +11,14 @@ import { UI_STRINGS } from '../../src/domain/language';
 const cow: Animal = {
   id: 'cow',
   name: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   soundWord: 'muuuu',
   acceptedAnswers: ['moo'],
 };
 
 const cowLocalized: LocalizedAnimalData = {
   id: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   translations: { en: { name: 'cow', soundWord: 'muuuu', acceptedAnswers: ['moo'] } },
 };
 

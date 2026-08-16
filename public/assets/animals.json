@@ -1,7 +1,7 @@
 [
   {
     "id": "cow",
-    "image": "assets/animals/cow.avif",
+    "image": "assets/animals/cow.webp",
     "translations": {
       "en": {
         "name": "cow",
@@ -36,7 +36,7 @@
       "uk": {
         "name": "собака",
         "soundWord": "гав гав",
-        "acceptedAnswers": ["гав", "гав гав", "ав", "gov", "gov gov", "gab", "hob"],
+        "acceptedAnswers": ["гав", "гав гав", "ав", "gov", "gav", "gaf", "gov gov", "gab", "hob"],
         "learnPhrase": "Собака каже... гав гав!",
         "quizPrompt": "Що каже собака?"
       },
@@ -46,6 +46,181 @@
         "acceptedAnswers": ["guau", "guau guau", "au"],
         "learnPhrase": "El perro hace... ¡guau guau!",
         "quizPrompt": "¿Qué hace el perro?"
+      }
+    }
+  },
+  {
+    "id": "duck",
+    "image": "assets/animals/duck.webp",
+    "translations": {
+      "en": {
+        "name": "duck",
+        "soundWord": "quack quack",
+        "acceptedAnswers": ["quack", "quack quack", "quackquack"]
+      },
+      "uk": {
+        "name": "качка",
+        "soundWord": "кря кря",
+        "acceptedAnswers": ["кря", "кря кря", "krya", "kria", "krja", "krha", "kra"],
+        "learnPhrase": "Качка каже... кря кря!",
+        "quizPrompt": "Що каже качка?"
+      },
+      "es": {
+        "name": "pato",
+        "soundWord": "cuac cuac",
+        "acceptedAnswers": ["cuac", "cua", "cuac cuac"],
+        "learnPhrase": "El pato hace... ¡cuac cuac!",
+        "quizPrompt": "¿Qué hace el pato?"
+      }
+    }
+  },
+  {
+    "id": "chicken",
+    "image": "assets/animals/chicken.png",
+    "translations": {
+      "en": {
+        "name": "chicken",
+        "soundWord": "cluck cluck",
+        "acceptedAnswers": ["cluck", "cluck cluck", "bawk", "buck", "cluk"]
+      },
+      "uk": {
+        "name": "курка",
+        "soundWord": "ко-ко-ко",
+        "acceptedAnswers": ["ко", "ко-ко", "ко-ко-ко", "ko ko", "koko", "kho"],
+        "learnPhrase": "Курка каже... ко-ко-ко!",
+        "quizPrompt": "Що каже курка?"
+      },
+      "es": {
+        "name": "gallina",
+        "soundWord": "coc coc",
+        "acceptedAnswers": ["coc", "cocorococo", "clo clo"],
+        "learnPhrase": "La gallina hace... ¡coc coc!",
+        "quizPrompt": "¿Qué hace la gallina?"
+      }
+    }
+  },
+  {
+    "id": "rooster",
+    "image": "assets/animals/rooster.png",
+    "translations": {
+      "en": {
+        "name": "rooster",
+        "soundWord": "cock-a-doodle-doo",
+        "acceptedAnswers": ["cockadoodledoo", "cock a doodle doo", "cock", "doodle", "crow"]
+      },
+      "uk": {
+        "name": "півень",
+        "soundWord": "кукуріку",
+        "acceptedAnswers": ["кукуріку", "куку", "kukuriku", "kookooriku", "cook a rico", "kukuriko"],
+        "learnPhrase": "Півень каже... кукуріку!",
+        "quizPrompt": "Що каже півень?"
+      },
+      "es": {
+        "name": "gallo",
+        "soundWord": "quiquiriquí",
+        "acceptedAnswers": ["quiquiriqui", "kikiriki", "quiquiriquí"],
+        "learnPhrase": "El gallo hace... ¡quiquiriquí!",
+        "quizPrompt": "¿Qué hace el gallo?"
+      }
+    }
+  },
+  {
+    "id": "wolf",
+    "image": "assets/animals/wolf.webp",
+    "translations": {
+      "en": {
+        "name": "wolf",
+        "soundWord": "awooo",
+        "acceptedAnswers": ["howl", "awoo", "ah woo", "woo", "owoo"]
+      },
+      "uk": {
+        "name": "вовк",
+        "soundWord": "у-у-у",
+        "acceptedAnswers": ["у-у", "у-у-у", "oo oo", "woo", "awoo"],
+        "learnPhrase": "Вовк каже... у-у-у!",
+        "quizPrompt": "Що каже вовк?"
+      },
+      "es": {
+        "name": "lobo",
+        "soundWord": "auuu",
+        "acceptedAnswers": ["auu", "au", "aullido"],
+        "learnPhrase": "El lobo hace... ¡auuu!",
+        "quizPrompt": "¿Qué hace el lobo?"
+      }
+    }
+  },
+  {
+    "id": "goat",
+    "image": "assets/animals/goat.webp",
+    "translations": {
+      "en": {
+        "name": "goat",
+        "soundWord": "maa",
+        "acceptedAnswers": ["maa", "ma", "mah", "baa", "meh"]
+      },
+      "uk": {
+        "name": "коза",
+        "soundWord": "ме-ме",
+        "acceptedAnswers": ["ме", "ме-ме", "meh meh", "me", "meeh"],
+        "learnPhrase": "Коза каже... ме-ме!",
+        "quizPrompt": "Що каже коза?"
+      },
+      "es": {
+        "name": "cabra",
+        "soundWord": "be be",
+        "acceptedAnswers": ["be", "bee", "mee"],
+        "learnPhrase": "La cabra hace... ¡be be!",
+        "quizPrompt": "¿Qué hace la cabra?"
+      }
+    }
+  },
+  {
+    "id": "sheep",
+    "image": "assets/animals/sheep.webp",
+    "translations": {
+      "en": {
+        "name": "sheep",
+        "soundWord": "baa",
+        "acceptedAnswers": ["baa", "ba", "bah", "maa"]
+      },
+      "uk": {
+        "name": "вівця",
+        "soundWord": "бе-бе",
+        "acceptedAnswers": ["бе", "бе-бе", "beh beh", "be", "beeh"],
+        "learnPhrase": "Вівця каже... бе-бе!",
+        "quizPrompt": "Що каже вівця?"
+      },
+      "es": {
+        "name": "oveja",
+        "soundWord": "bee",
+        "acceptedAnswers": ["bee", "be", "mee"],
+        "learnPhrase": "La oveja hace... ¡bee!",
+        "quizPrompt": "¿Qué hace la oveja?"
+      }
+    }
+  },
+  {
+    "id": "turkey",
+    "image": "assets/animals/turkey.png",
+    "translations": {
+      "en": {
+        "name": "turkey",
+        "soundWord": "gobble gobble",
+        "acceptedAnswers": ["gobble", "gobble gobble", "gobbles", "wobble"]
+      },
+      "uk": {
+        "name": "індик",
+        "soundWord": "ґел-ґел",
+        "acceptedAnswers": ["ґел", "ґел-ґел", "gel gel", "gil gil", "glue glue"],
+        "learnPhrase": "Індик каже... ґел-ґел!",
+        "quizPrompt": "Що каже індик?"
+      },
+      "es": {
+        "name": "pavo",
+        "soundWord": "glugú",
+        "acceptedAnswers": ["glugu", "gluglu", "glu"],
+        "learnPhrase": "El pavo hace... ¡glugú!",
+        "quizPrompt": "¿Qué hace el pavo?"
       }
     }
   }

@@ -4,7 +4,7 @@ import { AnimalCollection, learnPhraseFor, quizPromptFor, type Animal } from '..
 const cow: Animal = {
   id: 'cow',
   name: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   soundWord: 'muuuu',
   acceptedAnswers: ['muuu', 'moo'],
 };

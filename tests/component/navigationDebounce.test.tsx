@@ -8,7 +8,7 @@ import type { RecognitionService } from '../../src/services/speechRecognition';
 
 const cowLocalized: LocalizedAnimalData = {
   id: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   translations: { en: { name: 'cow', soundWord: 'muuuu', acceptedAnswers: ['moo'] } },
 };
 const dogLocalized: LocalizedAnimalData = {

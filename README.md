@@ -1,7 +1,9 @@
-# Animal Sounds Game 🐮🐶
+# Animal Sounds Game 🐮🐶🦆🐔🐓🐺🐐🐑🦃
 
 A browser learning game for young children (ages ~2–6). It shows friendly cartoon animals
 and teaches the sound each one makes, then lets the child guess sounds out loud.
+
+Current roster (9 animals): **cow, dog, duck, chicken, rooster, wolf, goat, sheep, turkey**.
 
 - **Learn mode** — shows an animal and says *"The cow says muuuu"*. Swipe or tap ◀ ▶ to
   move between animals; tap 🔊 to hear it again.
@@ -127,7 +129,8 @@ word, "moo". The English model only ever produces **Latin** text, never Cyrillic
 transcript and a Cyrillic target never share a consonant skeleton, so the matcher
 can't bridge them. This never produces a false "wrong": the worst case is a
 near-miss that falls through to the child-safe reveal/skip path. Today this works
-for exactly the two Ukrainian animals (cow, dog) that were given Latin variants.
+for all nine Ukrainian animals (cow, dog, duck, chicken, rooster, wolf, goat, sheep,
+turkey) that have Latin variants in their `acceptedAnswers`.
 
 Why not fix it the obvious ways?
 

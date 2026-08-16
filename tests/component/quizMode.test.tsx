@@ -9,7 +9,7 @@ import { LANGUAGES, UI_STRINGS } from '../../src/domain/language';
 const cow: Animal = {
   id: 'cow',
   name: 'cow',
-  image: 'assets/animals/cow.avif',
+  image: 'assets/animals/cow.webp',
   soundWord: 'muuuu',
   acceptedAnswers: ['moo', 'muuu'],
 };
