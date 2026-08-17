@@ -206,3 +206,15 @@ With multiple developers after Phase 2:
 - `WebSpeechRecognitionService` is cloud-based for uk/es — document trade-off in PR
 - `speak()` must always resolve (never reject) — existing contract must hold after lang param addition
 - Commit after each task or logical group; stop at checkpoints to validate story independently
+
+---
+
+## Phase 7: Convergence
+
+**Purpose**: Close the gap between the clarified spec (immediate speech on language switch — FR-004, US2 AC1-2/AC4-5, edge case, SC-002) and the current code, which re-renders text silently when only the language changes (LearnMode `lastSpokenId` guard; QuizMode effect keyed on `animal.id` only; App `handleLanguageChange` cancels audio but triggers no re-speak). Also adds the requested tests asserting TTS speaks the data-model text for the selected language in that language. TDD: write the failing tests (T026–T027) first, then implement (T028–T030).
+
+- [X] T026 [P] Write failing component test in `tests/component/languageSwitchSpeech.test.tsx` — render `<App>` in Learn mode with a repo fixture whose animals carry `uk` and `es` translations (with `learnPhrase`); click a flag and assert `tts.speak` is called with that language's localized learn phrase AND the matching `ttsLang` (tap 🇺🇦 → `speak(<uk learnPhrase>, 'uk-UA')`; then 🇪🇸 → `speak(<es learnPhrase>, 'es-ES')`) per user-request / FR-004 / US2 AC1 / SC-002 (missing)
+- [X] T027 [P] Write failing component test in `tests/component/languageSwitchSpeech.test.tsx` — render `<App>`, switch to Quiz mode, then tap a different flag (🇺🇦→🇪🇸) and assert `tts.speak` is called with the Spanish quiz prompt AND `'es-ES'`, and that listening restarts in the new language (recognition `listenOnce` invoked again after the switch) per user-request / FR-004 / US2 AC4 (missing)
+- [X] T028 Implement Learn-mode immediate re-speak on language change in `src/components/LearnMode.tsx` — when `langConfig.ttsLang` changes for the same animal, cancel current audio and re-speak the current animal's `learnPhrase` in the new `ttsLang`; relax the `lastSpokenId` guard so a language change re-speaks while still preventing duplicate same-language repeats; makes T026 green per FR-004 / US2 AC1-2 (missing)
+- [X] T029 Implement Quiz-mode immediate re-ask + relisten on language change in `src/components/QuizMode.tsx` — re-run the ask→listen cycle when `lang` changes (speak the current `quizPrompt` in the new `ttsLang`, then listen via the new-language recognition, falling back to reveal/skip when unavailable) and clear any pending auto-advance so a mid-cheer switch cannot bounce the child forward; makes T027 green per FR-004 / US2 AC4-5 / Edge case (missing)
+- [X] T030 Wire the switch trigger in `src/components/App.tsx` `handleLanguageChange` — keep the existing `ttsService.cancel()` + recognition re-creation and ensure the active mode re-speaks in the new language on switch (drive T028/T029, e.g. via lang-keyed effects); confirm tapping the already-active flag stays a no-op (no speech, no state change) per FR-010 / US2 AC5 (partial)

@@ -108,7 +108,7 @@ export function QuizMode({ animal, tts, recognition, lang, strings, langConfig, 
     }
   };
 
-  // On each animal change: reset attempts, ask the question, then start listening.
+  // On each animal change — or language switch — reset attempts, ask the question, then listen.
   useEffect(() => {
     sessionRef.current.reset();
     setPhase('listening');
@@ -123,8 +123,10 @@ export function QuizMode({ animal, tts, recognition, lang, strings, langConfig, 
       tts.cancel();
       recognition.stop();
     };
-    // Intentionally keyed on animal.id only: re-run the ask/listen cycle per animal.
-  }, [animal.id]);
+    // Keyed on animal.id AND lang: switching language mid-quiz re-asks the prompt and restarts
+    // listening in the new language (FR-004, US2 AC4-5); the cleanup disarms any pending
+    // auto-advance so a mid-cheer switch cannot bounce the child forward.
+  }, [animal.id, lang]);
 
   const navigate = (fn: () => void) => {
     clearAutoAdvance(); // manual navigation takes precedence over any pending auto-advance (FR-005)
