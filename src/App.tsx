@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimalCollection, type Animal, resolveAnimals, type LocalizedAnimalData } from './domain/animal';
+import { useEffect, useMemo, useState } from 'react';
+import { resolveAnimals, type LocalizedAnimalData } from './domain/animal';
 import {
   HttpAnimalsRepository,
   type AnimalsRepository,
@@ -46,49 +46,32 @@ export function App({ repository, tts, recognition, initialLanguage }: AppProps 
     [recognition, language],
   );
 
-  const localizedAnimalsRef = useRef<LocalizedAnimalData[]>([]);
-  const collectionRef = useRef<AnimalCollection | null>(null);
-  const [state, setState] = useState<LoadState>('loading');
-  const [current, setCurrent] = useState<Animal | null>(null);
+  const [localizedAnimals, setLocalizedAnimals] = useState<LocalizedAnimalData[] | null>(null);
+  const [index, setIndex] = useState(0);
   const [mode, setMode] = useState<GameMode>('learn');
 
   useEffect(() => {
     let cancelled = false;
     void repo.loadLocalizedAnimals().then((localized) => {
-      if (cancelled) return;
-      localizedAnimalsRef.current = localized;
-      const animals = resolveAnimals(localized, language);
-      const collection = new AnimalCollection(animals);
-      collectionRef.current = collection;
-      if (collection.isEmpty) {
-        setState('empty');
-        return;
-      }
-      setCurrent(collection.current() ?? null);
-      setState('ready');
+      if (!cancelled) setLocalizedAnimals(localized);
     });
     return () => {
       cancelled = true;
     };
-    // language intentionally omitted: only reload animals on repo change; language switching re-derives below
   }, [repo]);
 
-  useEffect(() => {
-    if (localizedAnimalsRef.current.length === 0) return;
-    const animals = resolveAnimals(localizedAnimalsRef.current, language);
-    // Preserve the child's place: the animal list is the same set/order in every language,
-    // so carry the current index over instead of snapping back to the first animal.
-    const prevIndex = collectionRef.current?.currentIndex ?? 0;
-    const collection = new AnimalCollection(animals, prevIndex);
-    collectionRef.current = collection;
-    if (collection.isEmpty) {
-      setState('empty');
-      setCurrent(null);
-      return;
-    }
-    setState('ready');
-    setCurrent(collection.current() ?? null);
-  }, [language]);
+  // Resolve the animal list for the active language in render, so language and the current
+  // animal are always consistent within one commit — a flag switch produces a single render
+  // with both updated (no stale intermediate that would speak the wrong-language text).
+  const animals = useMemo(
+    () => (localizedAnimals ? resolveAnimals(localizedAnimals, language) : []),
+    [localizedAnimals, language],
+  );
+
+  const state: LoadState = localizedAnimals === null ? 'loading' : animals.length === 0 ? 'empty' : 'ready';
+  // The animal list is the same set/order in every language, so the index carries the child's
+  // place across a language switch without snapping back to the first animal.
+  const current = animals.length > 0 ? animals[Math.min(index, animals.length - 1)] : null;
 
   const handleLanguageChange = (lang: Language) => {
     store.save(lang);
@@ -96,8 +79,9 @@ export function App({ repository, tts, recognition, initialLanguage }: AppProps 
     setLanguage(lang);
   };
 
-  const goNext = () => setCurrent(collectionRef.current?.next() ?? null);
-  const goPrev = () => setCurrent(collectionRef.current?.prev() ?? null);
+  const goNext = () => setIndex((i) => (animals.length > 0 ? (i + 1) % animals.length : 0));
+  const goPrev = () =>
+    setIndex((i) => (animals.length > 0 ? (i - 1 + animals.length) % animals.length : 0));
 
   if (state === 'loading') {
     return <main className="app app-loading">{strings.loading}</main>;
