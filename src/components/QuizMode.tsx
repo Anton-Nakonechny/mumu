@@ -85,6 +85,9 @@ export function QuizMode({ animal, tts, recognition, lang, strings, langConfig, 
     const result = await recognition.listenOnce(
       lang === 'uk' ? {} : { expectedWords: animal.acceptedAnswers },
     );
+    // Bail if the child navigated or switched language while we were listening: the old-language
+    // result must not score against the freshly-reset session or reveal in the language just left.
+    if (advanceGenRef.current !== gen) return;
     setIsListening(false);
     const correct = isAnswerCorrect(result.transcript, animal.acceptedAnswers);
     const next = sessionRef.current.registerResult(correct);
