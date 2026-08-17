@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { App } from '../../src/App';
-import { resolveAnimals, type LocalizedAnimalData } from '../../src/domain/animal';
+import { type LocalizedAnimalData } from '../../src/domain/animal';
 import type { AnimalsRepository } from '../../src/services/animalsRepository';
 import type { TtsService } from '../../src/services/speechSynthesis';
 import type { RecognitionService } from '../../src/services/speechRecognition';
@@ -42,7 +42,11 @@ const fixture: LocalizedAnimalData[] = [
 function makeRepo(): AnimalsRepository {
   return {
     loadLocalizedAnimals: vi.fn().mockResolvedValue(fixture),
-    loadAnimals: vi.fn().mockResolvedValue(resolveAnimals(fixture, 'en')),
+    // App must localize via loadLocalizedAnimals; a call here would mean a regression to English-only
+    // data, so fail loudly instead of silently masking it.
+    loadAnimals: vi.fn(() => {
+      throw new Error('unexpected loadAnimals call');
+    }),
   };
 }
 
@@ -58,6 +62,28 @@ function makeRecognition(): RecognitionService {
     listenOnce: vi.fn().mockResolvedValue({ transcript: '', noSpeech: true }),
     stop: vi.fn(),
   };
+}
+
+// Recognition whose first listenOnce stays pending (controlled via resolveFirst) while every later
+// call resolves immediately as a miss. Lets a test hold an old-language listen in flight across a
+// language switch and then resolve it, reproducing the stale-continuation race.
+function makeDeferredRecognition() {
+  let resolveFirst!: (r: { transcript: string; noSpeech: boolean }) => void;
+  const firstPromise = new Promise<{ transcript: string; noSpeech: boolean }>((res) => {
+    resolveFirst = res;
+  });
+  let calls = 0;
+  const listenOnce = vi.fn(() => {
+    calls += 1;
+    return calls === 1 ? firstPromise : Promise.resolve({ transcript: '', noSpeech: true });
+  });
+  const recognition: RecognitionService = {
+    isAvailable: () => true,
+    requestPermission: vi.fn().mockResolvedValue('granted'),
+    listenOnce,
+    stop: vi.fn(),
+  };
+  return { recognition, resolveFirst: () => resolveFirst({ transcript: '', noSpeech: true }) };
 }
 
 describe('Language switch re-speaks in the new language (Phase 7 convergence)', () => {
@@ -98,5 +124,39 @@ describe('Language switch re-speaks in the new language (Phase 7 convergence)', 
     fireEvent.click(screen.getByTestId('lang-es'));
     await waitFor(() => expect(tts.speak).toHaveBeenCalledWith('¿Qué hace la vaca?', 'es-ES'));
     await waitFor(() => expect(recognition.listenOnce).toHaveBeenCalledTimes(2));
+  });
+
+  it('T028: a language switch mid-listen never lets the old-language listen score or reveal in the old language (FR-004)', async () => {
+    const tts = makeTts();
+    const { recognition, resolveFirst } = makeDeferredRecognition();
+    render(
+      <App repository={makeRepo()} tts={tts} recognition={recognition} initialLanguage="uk" />,
+    );
+
+    // Enter Quiz mode (Ukrainian label); the first (uk) listen is left in flight (pending).
+    await screen.findByTestId('lang-selector');
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(UI_STRINGS['uk'].quiz) }));
+    await waitFor(() => expect(tts.speak).toHaveBeenCalledWith('Що каже корова?', 'uk-UA'));
+    await waitFor(() => expect(recognition.listenOnce).toHaveBeenCalledTimes(1));
+
+    // Switch to Spanish mid-listen: a fresh es cycle asks and listens, and the es listen resolves
+    // as a miss (session now at one miss, "listen again" offered).
+    fireEvent.click(screen.getByTestId('lang-es'));
+    await waitFor(() => expect(tts.speak).toHaveBeenCalledWith('¿Qué hace la vaca?', 'es-ES'));
+    await waitFor(() => expect(recognition.listenOnce).toHaveBeenCalledTimes(2));
+    await screen.findByTestId('listen-button');
+
+    // The stale uk listen finally resolves. It must not charge a phantom miss against the fresh es
+    // session (which would make this the 2nd miss and reveal the sound) nor speak in the old uk voice.
+    await act(async () => {
+      resolveFirst();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    // FR-004: nothing is spoken in the language just switched away from — no uk reveal…
+    expect(tts.speak).not.toHaveBeenCalledWith('муу', 'uk-UA');
+    // …and the es session was not polluted, so the child is still offered another try, not a reveal.
+    expect(screen.queryByTestId('listen-button')).not.toBeNull();
   });
 });
